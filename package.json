@@ -1,0 +1,10 @@
+{
+  "name": "live-support-layer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --experimental-strip-types apps/web/src/server.ts",
+    "test": "node --experimental-strip-types --test tests/**/*.test.ts",
+    "demo": "node --experimental-strip-types apps/web/src/server.ts"
+  }
+}
