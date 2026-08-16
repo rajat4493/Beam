@@ -3,8 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --experimental-strip-types apps/web/src/server.ts",
+    "dev": "node --env-file=.env --experimental-strip-types apps/web/src/server.ts",
     "test": "node --experimental-strip-types --test tests/**/*.test.ts",
-    "demo": "node --experimental-strip-types apps/web/src/server.ts"
+    "demo": "node --experimental-strip-types apps/web/src/server.ts",
+    "db:migrate": "node --env-file=.env --experimental-strip-types scripts/migrate.ts"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
   }
 }

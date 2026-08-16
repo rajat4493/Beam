@@ -1,0 +1,21 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+import type { PaymentProvider, PaymentRequest, VerifiedPayment } from "./provider.ts";
+
+type StripeConfig = { secretKey: string; publishableKey: string; clientId: string; webhookSecret: string; origin: string };
+/** Test-mode adapter. Direct charges are created with Stripe-Account, so funds never enter the platform balance. */
+export class StripePaymentProvider implements PaymentProvider {
+  private config: StripeConfig;
+  private accounts: Map<string,string>;
+  constructor(config: StripeConfig, accounts = new Map<string,string>()) { this.config = config; this.accounts = accounts; }
+  private async api(path:string, form:Record<string,string>, account?:string) { const r=await fetch(`https://api.stripe.com/v1/${path}`,{method:"POST",headers:{authorization:`Bearer ${this.config.secretKey}`,"content-type":"application/x-www-form-urlencoded",...(account?{"Stripe-Account":account}:{})},body:new URLSearchParams(form)}); if(!r.ok) throw new Error(`Stripe API ${r.status}`); return r.json() as Promise<any>; }
+  async connectCreator(creatorId:string) { const state=crypto.randomUUID(); this.accounts.set(`state:${state}`,creatorId); /* caller redirects user: standard onboarding, not credentials collection */ }
+  onboardingUrl(state:string) { return `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${encodeURIComponent(this.config.clientId)}&scope=read_write&state=${encodeURIComponent(state)}`; }
+  async completeOnboarding(code:string, state:string) { const creatorId=this.accounts.get(`state:${state}`); if(!creatorId) throw new Error("Invalid OAuth state"); const x=await this.api("oauth/token",{grant_type:"authorization_code",code}); this.accounts.set(creatorId,x.stripe_user_id); return x.stripe_user_id as string; }
+  async disconnectCreator(creatorId:string) { const id=this.accounts.get(creatorId); if(id) await this.api("accounts/deauthorize",{client_id:this.config.clientId,stripe_user_id:id}); this.accounts.delete(creatorId); }
+  async getConnectionStatus(id:string) { return this.accounts.has(id)?"connected" as const:"disconnected" as const; }
+  async createPayment(r:PaymentRequest) { const account=this.accounts.get(r.creatorId); if(!account) throw new Error("Creator is not connected"); const s=await this.api("checkout/sessions",{"mode":"payment","line_items[0][price_data][currency]":r.currency.toLowerCase(),"line_items[0][price_data][product_data][name]":"Live support","line_items[0][price_data][unit_amount]":String(r.amountMinor),"line_items[0][quantity]":"1","success_url":`${this.config.origin}/support/success?session_id={CHECKOUT_SESSION_ID}`,"cancel_url":`${this.config.origin}/support/cancel`,"metadata[creator_id]":r.creatorId,"metadata[supporter_name]":r.supporterName,"metadata[message]":r.message},account); return {checkoutUrl:s.url as string,reference:s.id as string}; }
+  private validSignature(raw:string, header?:string) { if(!header) return false; const parts=Object.fromEntries(header.split(",").map(x=>x.split("=") as [string,string])); if(!parts.t||!parts.v1) return false; const expected=createHmac("sha256",this.config.webhookSecret).update(`${parts.t}.${raw}`).digest("hex"); return expected.length===parts.v1.length&&timingSafeEqual(Buffer.from(expected),Buffer.from(parts.v1)); }
+  async verifyPayment(raw:string,headers:Record<string,string>) { return this.handleWebhook(raw,headers); }
+  async handleWebhook(raw:string,headers:Record<string,string>):Promise<VerifiedPayment|null> { if(!this.validSignature(raw,headers["stripe-signature"])) return null; const e=JSON.parse(raw); if(e.type!=="checkout.session.completed"||e.data.object.payment_status!=="paid") return null; const o=e.data.object; return {creatorId:o.metadata.creator_id,amountMinor:o.amount_total,currency:o.currency.toUpperCase(),supporterName:o.metadata.supporter_name,message:o.metadata.message,providerEventId:e.id,paidAt:Date.now()}; }
+  getSupportedPaymentMethods(){return ["card","provider-configured"];} getSupportedCurrencies(){return ["provider-configured"];} getCapabilities(){return {hostedCheckout:true,webhooks:true,creatorOAuth:true,realMoney:false,testModeOnly:true};}
+}
