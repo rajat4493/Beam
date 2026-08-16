@@ -61,6 +61,7 @@ No live-money payment, YouTube OAuth, Redis, deployment, production authenticati
 - Embedded YouTube video is not a solution for Beam’s mobile checkout interruption: native Live Chat is unavailable in embedded players, and embedded live chat is unavailable on mobile web.
 - Android PiP may mitigate the switch for eligible viewers but cannot be controlled or promised by Beam; iPhone behavior remains a real-device validation item.
 - Decision record and real-phone test protocol: `docs/MOBILE_CONTEXT_SWITCH_RISK.md`.
+- Known product gap: staging returns fans to generic YouTube, not yet the specific originating watch page; this must be fixed only after real-device return behavior is observed.
 
 # Product-value decision (researched)
 

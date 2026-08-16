@@ -30,6 +30,10 @@ After YouTube enables the founder’s unlisted live stream, run each test once w
 2. **Android:** repeat with YouTube picture-in-picture enabled. Record whether the live video remains perceptually present while Beam and the payment page are open.
 3. Measure: link tap to Checkout, Checkout completion to YouTube return, payment to OBS, number of switches/taps, and stated reason if the journey feels irritating.
 
+### Current Beam gap
+
+The current staging success screen uses the configured general YouTube return URL. It does **not** yet prove a return to the exact originating watch page. This is a material UX gap, not an acceptable pilot assumption. The live test must first establish the best supported return behavior on each device; Beam should then carry a validated, safe per-stream return target through checkout rather than sending a fan to generic YouTube home.
+
 ## Pass / kill signals
 
 - **Proceed:** the interaction is compelling enough that founders/viewers accept the interruption, and repeat supporters do so voluntarily.
