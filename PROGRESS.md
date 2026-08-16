@@ -25,4 +25,18 @@ No live-money payment, YouTube OAuth, Redis, deployment, production authenticati
 
 ## Next phase
 
-Validate a real mobile payment-and-return journey, move the local drain endpoint into an independently supervised worker, and run the documented duplicate/reconnect sequence under a deployed test URL before a creator pilot.
+## Pilot experiment preparation — implemented, not yet live
+
+- Pilot mode provides a creator supporter URL, QR code, OBS URL, pre-stream checklist, test interaction, and live health indication.
+- Neon now stores pilot creators, streams, safety settings, and privacy-minimized funnel events. The internal dashboard calculates Beam payer/GMV totals, payment conversion, display success, manually-entered native Super Chat totals, and adoption shares by payer and GMV.
+- Two cohorts are explicit: `monetized` and `non_monetized`; conclusions must remain separate.
+- The emergency switch stops new payments and/or interaction generation while retaining verified payment events.
+- The one-page owner process and provisional decision thresholds are in `docs/PILOT_OPERATING_GUIDE.md`.
+
+## Pilot ready — no, pending operational validation
+
+- Production payment-provider approval and a real creator-connected production account.
+- A deployed HTTPS URL with protected internal pilot credentials; local URLs are not shareable with real viewers.
+- A real iPhone and Android payment-and-return run, including return-to-YouTube measurement.
+- A supervised independent outbox worker rather than the local drain endpoint.
+- One creator’s completed pre-stream safety checklist and a controlled first stream.

@@ -9,13 +9,13 @@ export class PostgresPaymentStore {
   constructor(pool: Pool) { this.pool = pool; }
   static fromEnvironment() { return new PostgresPaymentStore(new Pool({ connectionString: process.env.DATABASE_URL })); }
   async migrate() { await migrate(this.pool); }
-  async recordVerifiedPayment(payment: VerifiedPayment, interaction: Interaction) {
+  async recordVerifiedPayment(payment: VerifiedPayment, interaction?: Interaction) {
     const client=await this.pool.connect(); await client.query("BEGIN");
     try {
       const event=await client.query("INSERT INTO external_events (id,provider,provider_event_id,payload) VALUES ($1,$2,$3,$4) ON CONFLICT (provider,provider_event_id) DO NOTHING RETURNING id",[randomUUID(),"stripe",payment.providerEventId,payment]);
       if (!event.rowCount) { await client.query("COMMIT"); return { created:false }; }
-      await client.query("INSERT INTO interactions (id,creator_id,provider,provider_event_id,amount_minor,currency,supporter_name,message,state,impact,received_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,to_timestamp($11/1000.0))",[interaction.id,interaction.creatorId,"stripe",payment.providerEventId,interaction.amountMinor,interaction.currency,interaction.supporterName,interaction.message,interaction.state,interaction.impact,interaction.receivedAt]);
-      await client.query("INSERT INTO outbox_events (id,topic,payload) VALUES ($1,$2,$3)",[randomUUID(),"interaction.queued",interaction]); await client.query("COMMIT"); return { created:true };
+      if (interaction) { await client.query("INSERT INTO interactions (id,creator_id,provider,provider_event_id,amount_minor,currency,supporter_name,message,state,impact,received_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,to_timestamp($11/1000.0))",[interaction.id,interaction.creatorId,"stripe",payment.providerEventId,interaction.amountMinor,interaction.currency,interaction.supporterName,interaction.message,interaction.state,interaction.impact,interaction.receivedAt]); await client.query("INSERT INTO outbox_events (id,topic,payload) VALUES ($1,$2,$3)",[randomUUID(),"interaction.queued",interaction]); }
+      await client.query("COMMIT"); return { created:true };
     } catch(error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); }
   }
   /** At-least-once delivery: a crash before commit leaves rows pending; consumers deduplicate by interaction ID. */

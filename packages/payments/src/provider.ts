@@ -1,4 +1,4 @@
-export type PaymentRequest = { creatorId: string; amountMinor: number; currency: string; supporterName: string; message: string };
+export type PaymentRequest = { creatorId: string; streamId?: string; amountMinor: number; currency: string; supporterName: string; message: string };
 export type VerifiedPayment = PaymentRequest & { providerEventId: string; paidAt: number };
 export interface PaymentProvider {
   connectCreator(creatorId: string): Promise<void>;
