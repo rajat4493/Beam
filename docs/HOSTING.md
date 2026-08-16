@@ -1,5 +1,14 @@
 # Hosting recommendation
 
-Start managed and simple: Vercel for web/API/edge delivery, a managed regional Postgres provider (for example Neon via Vercel Marketplace), and a durable queue with an explicit production readiness review. Vercel Functions scale managed HTTP workloads, while Vercel Queues provide at-least-once delivery and require idempotent consumers; the latter is currently documented as beta, so use it only after a production readiness evaluation or substitute a mature managed queue. [Functions](https://vercel.com/docs/functions), [Postgres integrations](https://vercel.com/docs/postgres), [Queues](https://vercel.com/docs/queues).
+For the controlled pilot, use a managed web service plus a separate always-on worker. The included `render.yaml` declares exactly those two services: a public web service with `/health`, and a background worker that drains the durable Neon outbox. Render supports a `worker` service type in Blueprints, and its web health checks can prevent traffic from reaching an unready deployment. [Render Blueprint reference](https://render.com/docs/blueprint-spec), [Render health checks](https://render.com/docs/health-checks).
 
-Keep data, workers, and functions in a region appropriate to the initial market and PSP latency. GitHub push should run lint/type/test, deploy preview, then staging; production promotion follows smoke tests. No Kubernetes or self-managed database is proposed.
+## Staging deployment
+
+1. In Render, create a Blueprint from this GitHub repository. It will detect `render.yaml` and create the web and worker services.
+2. Set the same Neon `DATABASE_URL` on both services.
+3. Deploy the web service once, copy its HTTPS URL, then set `APP_ORIGIN` to that URL on both services and redeploy both.
+4. Generate distinct long values for `PILOT_ADMIN_TOKEN` and `OUTBOX_WORKER_TOKEN`. Put the latter on both services. Never put either token in browser code or Git.
+5. Keep `PAYMENT_PROVIDER=mock` until mobile testing and Stripe production approval are complete. Add Stripe secrets only to the web service when the production gate is approved.
+6. Confirm `/health`, open the creator pilot page, send a test alert, restart the worker, and verify an outbox event appears once in OBS.
+
+Keep data, workers, and functions in a region appropriate to the initial market and PSP latency. No Kubernetes or self-managed database is proposed.

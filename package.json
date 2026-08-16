@@ -4,10 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "node --env-file=.env --experimental-strip-types apps/web/src/server.ts",
+    "start": "node --experimental-strip-types apps/web/src/server.ts",
     "test": "node --experimental-strip-types --test tests/**/*.test.ts",
     "demo": "node --experimental-strip-types apps/web/src/server.ts",
     "db:migrate": "node --env-file=.env --experimental-strip-types scripts/migrate.ts",
-    "validate:recovery": "node --env-file=.env --experimental-strip-types scripts/validate-recovery.ts"
+    "validate:recovery": "node --env-file=.env --experimental-strip-types scripts/validate-recovery.ts",
+    "worker": "node --env-file=.env --experimental-strip-types apps/worker/src/worker.ts",
+    "worker:start": "node --experimental-strip-types apps/worker/src/worker.ts"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

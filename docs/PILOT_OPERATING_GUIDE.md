@@ -29,11 +29,13 @@ Enter native Super Chat payer count and gross amount after the stream. Keep the 
 
 ## Decision thresholds for monetized creators
 
+Do not treat the percentages below as statistically meaningful until the pilot has accumulated roughly 30–50 paid-support choices across streams. In the first few streams, record the behavior and the stated reasons; a tiny denominator can make an apparently strong percentage meaningless.
+
 - Strong: Beam adoption ≥25% of paid supporters, payment success ≥90%, median mobile completion under about 20 seconds, creator wants to reuse it, and no serious reliability incident.
 - Very strong: adoption ≥40%, repeat supporters appear, and creator naturally promotes Beam.
-- Weak: adoption <10%, high abandonment, repeated explanation, or materially worse mobile flow.
+- Weak: adoption <10%, high abandonment, repeated explanation, or materially worse mobile flow. A repeated pattern of viewers reaching checkout and abandoning because leaving YouTube is irritating is a kill signal; do not paper over it with extra features.
 
-Beam adoption is `Beam payers / (Beam payers + native Super Chat payers)`. Also calculate the same share by GMV. Treat manually entered YouTube data as lower-confidence than provider data.
+Beam adoption is `Beam payers / (Beam payers + native Super Chat payers)`. Also calculate the same share by GMV. Treat manually entered YouTube data as lower-confidence than provider data. The strongest early qualitative signal is a creator voluntarily choosing to use Beam again and supporters returning to use it without repeated prompting.
 
 ## After each stream
 
