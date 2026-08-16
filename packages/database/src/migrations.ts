@@ -46,7 +46,7 @@ export async function migrate(pool: Pool) {
   } catch (error) { await pool.query("ROLLBACK"); throw error; }
   }
   const founderId = "003_founder_dogfood";
-  if ((await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [founderId])).rowCount) return;
+  if (!(await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [founderId])).rowCount) {
   await pool.query("BEGIN");
   try {
     await pool.query("ALTER TABLE pilot_creators ADD COLUMN IF NOT EXISTS youtube_channel_id text");
@@ -58,13 +58,29 @@ export async function migrate(pool: Pool) {
     await pool.query("CREATE INDEX founder_sessions_expiry_idx ON founder_sessions (expires_at)");
     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1)", [founderId]); await pool.query("COMMIT");
   } catch (error) { await pool.query("ROLLBACK"); throw error; }
+  }
   const oauthId = "004_founder_oauth_states";
-  if ((await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [oauthId])).rowCount) return;
+  if (!(await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [oauthId])).rowCount) {
   await pool.query("BEGIN");
   try {
     await pool.query(`CREATE TABLE founder_oauth_states (
       state text PRIMARY KEY, kind text NOT NULL CHECK (kind IN ('youtube','stripe')), creator_id text,
       expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1)", [oauthId]); await pool.query("COMMIT");
+  } catch (error) { await pool.query("ROLLBACK"); throw error; }
+  }
+  const inboxId = "005_support_inbox_moments";
+  if ((await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [inboxId])).rowCount) return;
+  await pool.query("BEGIN");
+  try {
+    await pool.query(`CREATE TABLE support_inbox (
+      interaction_id uuid PRIMARY KEY REFERENCES interactions(id), creator_id text NOT NULL REFERENCES pilot_creators(id),
+      status text NOT NULL CHECK (status IN ('NEW','SURFACED','ANSWERED','ANSWER_LATER','SKIPPED','MODERATED')) DEFAULT 'NEW',
+      updated_at timestamptz NOT NULL DEFAULT now())`);
+    await pool.query(`CREATE TABLE supporter_moments (
+      interaction_id uuid PRIMARY KEY REFERENCES interactions(id), creator_id text NOT NULL REFERENCES pilot_creators(id),
+      token uuid NOT NULL UNIQUE, answer_timestamp_seconds integer, created_at timestamptz NOT NULL DEFAULT now())`);
+    await pool.query("CREATE INDEX support_inbox_creator_idx ON support_inbox (creator_id,updated_at DESC)");
+    await pool.query("INSERT INTO schema_migrations (id) VALUES ($1)", [inboxId]); await pool.query("COMMIT");
   } catch (error) { await pool.query("ROLLBACK"); throw error; }
 }
