@@ -58,4 +58,13 @@ export async function migrate(pool: Pool) {
     await pool.query("CREATE INDEX founder_sessions_expiry_idx ON founder_sessions (expires_at)");
     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1)", [founderId]); await pool.query("COMMIT");
   } catch (error) { await pool.query("ROLLBACK"); throw error; }
+  const oauthId = "004_founder_oauth_states";
+  if ((await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [oauthId])).rowCount) return;
+  await pool.query("BEGIN");
+  try {
+    await pool.query(`CREATE TABLE founder_oauth_states (
+      state text PRIMARY KEY, kind text NOT NULL CHECK (kind IN ('youtube','stripe')), creator_id text,
+      expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
+    await pool.query("INSERT INTO schema_migrations (id) VALUES ($1)", [oauthId]); await pool.query("COMMIT");
+  } catch (error) { await pool.query("ROLLBACK"); throw error; }
 }
