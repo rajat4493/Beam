@@ -2,7 +2,7 @@ services:
   - type: web
     name: beam-staging-web
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci
     startCommand: npm run start
     healthCheckPath: /health
@@ -11,24 +11,13 @@ services:
         value: production
       - key: PAYMENT_PROVIDER
         value: mock
+      - key: AUTO_DRAIN_MS
+        value: "1000"
       - key: DATABASE_URL
         sync: false
       - key: APP_ORIGIN
         sync: false
       - key: PILOT_ADMIN_TOKEN
-        sync: false
-      - key: OUTBOX_WORKER_TOKEN
-        sync: false
-  - type: worker
-    name: beam-staging-outbox
-    runtime: node
-    plan: starter
-    buildCommand: npm ci
-    startCommand: npm run worker:start
-    envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: APP_ORIGIN
         sync: false
       - key: OUTBOX_WORKER_TOKEN
         sync: false
