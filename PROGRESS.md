@@ -11,18 +11,18 @@
 - Mobile support page, centralized branding, mock payment provider, verified-event simulation, idempotency store, deterministic moderation fallback, continuous impact engine, queue scoring, SSE overlay, and health endpoint.
 - `npm test` verifies impact behavior, duplicate-event protection, starvation prevention, and state-machine validity.
 
-## Phase 2 — feasibility validation in progress
+## Phase 2 — core payment chain validated
 
-- Baseline before changes: `npm test` passed 4/4 on 2026-08-16.
-- Stripe direct-charge research is recorded in `docs/PAYMENTS_STRIPE.md`. Technical design is supported; Indian Connect/UPI availability remains unconfirmed.
-- A test-mode-only Stripe adapter and signed-webhook unit test exist. No Stripe credentials or real sandbox account were available, therefore no real network integration is claimed.
-- OBS is not installed, so real Browser Source validation and screenshots are blocked. A reproducible protocol is in `docs/OBS_TESTING.md`.
-- Queue burst test now covers 1,000 unique event identifiers in memory. Durable worker restart, actual Stripe reorder/duplicate delivery, SSE reconnect, and real-device mobile return flow still require an environment with Postgres/worker/OBS/Stripe test account.
+- Neon Postgres migrations, transactional external-event deduplication, interaction writes, and an at-least-once outbox are live in the test environment.
+- `npm test` passes 6/6. `npm run validate:recovery` ran against Neon on 2026-08-16: it rejected a duplicate, preserved an alert through a simulated worker interruption, then delivered it exactly once on recovery.
+- Stripe Connect is configured for direct charges, with Stripe collecting seller processing fees and losses. A fresh connected-account PLN 100 test payment was created without an application fee or transfer.
+- The same direct payment produced a signed `payment_intent.succeeded` event, was verified by Beam, durably recorded in Neon, drained from the outbox, and visibly displayed in real OBS Studio after a Browser Source reconnect.
+- The local Stripe listener must be started with the Beam sandbox API key; a listener authenticated to another Stripe context will not receive the connected-account events.
 
 ## Intentionally not claimed as done
 
-No live PSP, YouTube OAuth, PostgreSQL, Redis, deployment, real signatures, production authentication, or external-provider certification has been integrated or validated. The current store is in memory and is only for local demonstration.
+No live-money payment, YouTube OAuth, Redis, deployment, production authentication, external-provider certification, or real-device mobile return flow has been validated. This is a Stripe sandbox-only proof; secrets stay in ignored local environment files.
 
 ## Next phase
 
-Create Postgres migrations/outbox and durable worker; then select and sandbox-validate exactly one payment provider after commercial eligibility confirmation.
+Validate a real mobile payment-and-return journey, move the local drain endpoint into an independently supervised worker, and run the documented duplicate/reconnect sequence under a deployed test URL before a creator pilot.

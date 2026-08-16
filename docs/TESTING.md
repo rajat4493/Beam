@@ -1,5 +1,7 @@
 # Test strategy
 
-Current automated tests cover continuous impact scaling, duplicate-event idempotency, queue starvation prevention, and lifecycle transition rejection. Run `make test`.
+Current automated tests cover continuous impact scaling, duplicate-event idempotency, queue starvation prevention, lifecycle transition rejection, Stripe-signature acceptance/rejection, and a 1,000-event burst. Run `npm test`.
 
-Before beta: add Postgres transaction/outbox integration tests, raw-webhook signature fixtures, duplicate/late/out-of-order provider events, worker-restart recovery, Redis outage behavior, SSE reconnect/deduplication, full browser journeys on mobile and desktop, and OBS visual screenshots for amounts, long Unicode/Hindi text, bursts, and reduced motion. Record measured P50/P95/P99 instead of asserting a latency target.
+`npm run validate:recovery` is an integration check against the configured Postgres database. It records a synthetic verified payment, proves a duplicate does not create a second record, simulates an outbox-worker interruption, and proves the pending alert is delivered exactly once on recovery. It does not use a payment provider or display an alert in OBS.
+
+Before beta: add automated duplicate/late/out-of-order provider-event cases, an independently supervised worker, Redis outage behavior, full browser journeys on mobile and desktop, and OBS visual checks for amounts, long Unicode/Hindi text, bursts, and reduced motion. Record measured P50/P95/P99 instead of asserting a latency target.
