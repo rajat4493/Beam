@@ -61,3 +61,9 @@ No live-money payment, YouTube OAuth, Redis, deployment, production authenticati
 - Embedded YouTube video is not a solution for Beam’s mobile checkout interruption: native Live Chat is unavailable in embedded players, and embedded live chat is unavailable on mobile web.
 - Android PiP may mitigate the switch for eligible viewers but cannot be controlled or promised by Beam; iPhone behavior remains a real-device validation item.
 - Decision record and real-phone test protocol: `docs/MOBILE_CONTEXT_SWITCH_RISK.md`.
+
+# Product-value decision (researched)
+
+- Beam cannot compete as “a cheaper QR payment.” UPI supplies direct payment; YouTube Supers already supply native recognition, social interaction, milestones, and creator reporting.
+- Product thesis: paid participation via a creator-defined live action, validated one interaction at a time before any feature expansion.
+- Decision record: `docs/BEAM_VALUE_HYPOTHESIS.md`.
