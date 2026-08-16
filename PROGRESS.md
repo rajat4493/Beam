@@ -40,3 +40,9 @@ No live-money payment, YouTube OAuth, Redis, deployment, production authenticati
 - A real iPhone and Android payment-and-return run, including return-to-YouTube measurement.
 - A supervised independent outbox worker rather than the local drain endpoint.
 - One creator’s completed pre-stream safety checklist and a controlled first stream.
+
+## Free staging self-test — passed in part
+
+- HTTPS staging is live at the owner-provided Render URL, with public supporter and OBS URLs generated correctly.
+- Owner confirmed the hosted web and iPhone access tests worked on 2026-08-16.
+- This verifies public page access and the test-alert path only. Android, provider checkout, payment completion, and return-to-YouTube remain unverified.
