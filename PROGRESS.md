@@ -55,3 +55,9 @@ No live-money payment, YouTube OAuth, Redis, deployment, production authenticati
 - Dashboard supplies supporter URL, QR code, OBS source URL, test alert, OBS confirmation, and human-readable recent support.
 - Fan page clearly labels sandbox mode and accepts any positive provider-valid amount.
 - Not yet dogfood-complete: founder must personally run the full self-serve journey on deployed staging after Google OAuth and Stripe Connect OAuth are configured.
+
+# Mobile context-switch risk (researched)
+
+- Embedded YouTube video is not a solution for Beam’s mobile checkout interruption: native Live Chat is unavailable in embedded players, and embedded live chat is unavailable on mobile web.
+- Android PiP may mitigate the switch for eligible viewers but cannot be controlled or promised by Beam; iPhone behavior remains a real-device validation item.
+- Decision record and real-phone test protocol: `docs/MOBILE_CONTEXT_SWITCH_RISK.md`.
