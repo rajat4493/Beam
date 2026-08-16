@@ -45,4 +45,6 @@ No live-money payment, YouTube OAuth, Redis, deployment, production authenticati
 
 - HTTPS staging is live at the owner-provided Render URL, with public supporter and OBS URLs generated correctly.
 - Owner confirmed the hosted web and iPhone access tests worked on 2026-08-16.
-- This verifies public page access and the test-alert path only. Android, provider checkout, payment completion, and return-to-YouTube remain unverified.
+- Hosted Stripe sandbox checkout was validated on iPhone: fan link → Stripe Checkout → signed connected-account webhook → Neon durable event/outbox → automatic drain → OBS alert. The Beam thank-you page and Return to YouTube control also worked.
+- The first staged payment occurred before the free service's automatic drain was confirmed after redeploy. A subsequent payment, with the OBS source connected, appeared immediately. The outbox and OBS connection are therefore both validated for the current staging process.
+- Android and any real-money/production-provider flow remain unverified.

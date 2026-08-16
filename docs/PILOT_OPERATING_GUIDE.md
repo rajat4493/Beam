@@ -17,7 +17,7 @@ This pilot tests whether real livestream viewers choose Beam when YouTube Super 
 
 YouTube → pinned/description Beam link → amount/message → provider checkout → success → return to YouTube. No fan account is required. The optional post-payment question must appear only after success.
 
-Free staging has validated the public support/QR/OBS path on web and iPhone. It has not validated a provider checkout or return to YouTube; keep those as separate required tests before a real viewer pilot.
+Free staging has validated the public support/QR/OBS path and a Stripe sandbox Checkout on iPhone, including the Return to YouTube control and automatic OBS delivery. Keep Android and real-money provider flow as separate required tests before a real viewer pilot.
 
 ## Neutral creator wording
 
