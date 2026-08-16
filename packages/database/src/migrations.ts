@@ -23,7 +23,7 @@ export async function migrate(pool: Pool) {
   } catch (error) { await pool.query("ROLLBACK"); throw error; }
   }
   const pilotId = "002_pilot_operations";
-  if ((await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [pilotId])).rowCount) return;
+  if (!(await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [pilotId])).rowCount) {
   await pool.query("BEGIN");
   try {
     await pool.query(`CREATE TABLE pilot_creators (
@@ -43,5 +43,19 @@ export async function migrate(pool: Pool) {
     await pool.query("CREATE INDEX pilot_events_stream_idx ON pilot_events (stream_id, occurred_at)");
     await pool.query("INSERT INTO pilot_settings (key,value) VALUES ('safety','{\"paymentsEnabled\":true,\"interactionsEnabled\":true}'::jsonb) ON CONFLICT DO NOTHING");
     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1)", [pilotId]); await pool.query("COMMIT");
+  } catch (error) { await pool.query("ROLLBACK"); throw error; }
+  }
+  const founderId = "003_founder_dogfood";
+  if ((await pool.query("SELECT 1 FROM schema_migrations WHERE id=$1", [founderId])).rowCount) return;
+  await pool.query("BEGIN");
+  try {
+    await pool.query("ALTER TABLE pilot_creators ADD COLUMN IF NOT EXISTS youtube_channel_id text");
+    await pool.query("ALTER TABLE pilot_creators ADD COLUMN IF NOT EXISTS youtube_connected_at timestamptz");
+    await pool.query("ALTER TABLE pilot_creators ADD COLUMN IF NOT EXISTS obs_confirmed_at timestamptz");
+    await pool.query(`CREATE TABLE founder_sessions (
+      token_hash text PRIMARY KEY, creator_id text NOT NULL REFERENCES pilot_creators(id),
+      expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
+    await pool.query("CREATE INDEX founder_sessions_expiry_idx ON founder_sessions (expires_at)");
+    await pool.query("INSERT INTO schema_migrations (id) VALUES ($1)", [founderId]); await pool.query("COMMIT");
   } catch (error) { await pool.query("ROLLBACK"); throw error; }
 }

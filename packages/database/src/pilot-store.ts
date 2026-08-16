@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { Pool } from "pg";
 
 export type Cohort = "monetized" | "non_monetized";
@@ -9,6 +9,13 @@ export class PilotStore {
   async ensureCreator(id:string,name:string="Creator Studio",cohort:Cohort="monetized") { await this.pool.query("INSERT INTO pilot_creators (id,name,cohort) VALUES ($1,$2,$3) ON CONFLICT (id) DO NOTHING",[id,name,cohort]); }
   async creator(id:string) { return (await this.pool.query("SELECT * FROM pilot_creators WHERE id=$1",[id])).rows[0] as any; }
   async setStripeAccount(id:string,accountId:string) { await this.pool.query("UPDATE pilot_creators SET stripe_account_id=$2 WHERE id=$1",[id,accountId]); }
+  async connectYouTube(id:string,channelId:string,name:string) { await this.pool.query("UPDATE pilot_creators SET youtube_channel_id=$2,youtube_connected_at=now(),name=$3 WHERE id=$1",[id,channelId,name]); }
+  async confirmObs(id:string) { await this.pool.query("UPDATE pilot_creators SET obs_confirmed_at=now() WHERE id=$1",[id]); }
+  private hash(token:string) { return createHash("sha256").update(token).digest("hex"); }
+  async createSession(creatorId:string) { const token=randomUUID()+randomUUID(); await this.pool.query("DELETE FROM founder_sessions WHERE expires_at < now()"); await this.pool.query("INSERT INTO founder_sessions (token_hash,creator_id,expires_at) VALUES ($1,$2,now()+interval '12 hours')",[this.hash(token),creatorId]); return token; }
+  async sessionCreator(token:string) { return (await this.pool.query("SELECT c.* FROM founder_sessions s JOIN pilot_creators c ON c.id=s.creator_id WHERE s.token_hash=$1 AND s.expires_at>now()",[this.hash(token)])).rows[0] as any; }
+  async recentInteractions(creatorId:string) { return (await this.pool.query("SELECT supporter_name,message,amount_minor,currency,state,received_at FROM interactions WHERE creator_id=$1 ORDER BY received_at DESC LIMIT 20",[creatorId])).rows as any[]; }
+  async founderMetrics(creatorId:string) { const r=await this.pool.query(`SELECT event_type,occurred_at,checkout_duration_ms FROM pilot_events WHERE creator_id=$1 ORDER BY occurred_at`,[creatorId]); const events=r.rows; const first=events.find(x=>x.event_type==='creator_onboarding_started')?.occurred_at; const ready=events.find(x=>x.event_type==='creator_ready')?.occurred_at; const starts=events.filter(x=>x.event_type==='payment_started'), paid=events.filter(x=>x.event_type==='payment_success'); return {creatorOnboardingMs:first&&ready?new Date(ready).getTime()-new Date(first).getTime():null,creatorActions:events.filter(x=>x.event_type.startsWith('creator_')).length,fanActions:starts.length+paid.length,fanCheckoutMs:starts.at(-1)?.checkout_duration_ms||null,payments:paid.length}; }
   async record(e:PilotEvent) { await this.pool.query("INSERT INTO pilot_events (id,creator_id,stream_id,event_type,device_type,country,currency,amount_minor,payment_method_category,checkout_duration_ms,failure_reason,metadata) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",[randomUUID(),e.creatorId,e.streamId||null,e.eventType,e.deviceType||null,e.country||null,e.currency||null,e.amountMinor||null,e.paymentMethodCategory||null,e.checkoutDurationMs||null,e.failureReason||null,e.metadata||{}]); }
   async safety() { return (await this.pool.query("SELECT value FROM pilot_settings WHERE key='safety'" )).rows[0]?.value || {paymentsEnabled:true,interactionsEnabled:true}; }
   async setSafety(value:{paymentsEnabled:boolean;interactionsEnabled:boolean}) { await this.pool.query("INSERT INTO pilot_settings (key,value,updated_at) VALUES ('safety',$1,now()) ON CONFLICT (key) DO UPDATE SET value=$1,updated_at=now()",[value]); }

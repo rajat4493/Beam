@@ -48,3 +48,10 @@ No live-money payment, YouTube OAuth, Redis, deployment, production authenticati
 - Hosted Stripe sandbox checkout was validated on iPhone: fan link → Stripe Checkout → signed connected-account webhook → Neon durable event/outbox → automatic drain → OBS alert. The Beam thank-you page and Return to YouTube control also worked.
 - The first staged payment occurred before the free service's automatic drain was confirmed after redeploy. A subsequent payment, with the OBS source connected, appeared immediately. The outbox and OBS connection are therefore both validated for the current staging process.
 - Android and any real-money/production-provider flow remain unverified.
+# Founder Dogfood Mode (in progress)
+
+- Public `/` landing page and creator dashboard added.
+- Creator journey now has intended Google/YouTube OAuth and Stripe-hosted Connect handoff routes; credentials and redirect registration remain a one-time owner configuration gate.
+- Dashboard supplies supporter URL, QR code, OBS source URL, test alert, OBS confirmation, and human-readable recent support.
+- Fan page clearly labels sandbox mode and accepts any positive provider-valid amount.
+- Not yet dogfood-complete: founder must personally run the full self-serve journey on deployed staging after Google OAuth and Stripe Connect OAuth are configured.
